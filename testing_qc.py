@@ -11,7 +11,7 @@ qc.measure_all()
 
 # 2. Inicializar la calculadora y evaluar
 # Evaluar en el plan abierto gratuito (IBM Eagle Open Plan)
-estimator_eagle = QuantumCircuitEstimator(target_qpu="ibm_eagle_open")
+estimator_eagle = QuantumCircuitEstimator()
 report = estimator_eagle.evaluate(qc, shots=2000)
 report.print_summary()
 

@@ -887,7 +887,7 @@ class FullAnalysisReport:
         # 3. IBM Quantum Execution & Cost Comparison
         lines.append(f"\n[3] IBM QUANTUM HARDWARE ESTIMATION (Shots: {self.shots:,})")
         lines.append("  " + "-" * 76)
-        lines.append(f"  {'Target Processor':<24} | {'Raw QPU Time':<13} | {'Total Wall Time':<15} | {'Cost (USD)':<12}")
+        lines.append(f"  {'Target Processor':<24} | {'Raw QPU Time':<13} | {'Total Wall Time':<15} |")
         lines.append("  " + "-" * 76)
         for res in self.qpu_estimates:
             name_str = f"{res.qpu_name}"
@@ -897,7 +897,7 @@ class FullAnalysisReport:
             raw_t = f"{res.raw_qpu_time_sec:.3f} s"
             tot_t = f"{res.total_estimated_time_sec:.2f} s"
             cost_str = f"${res.estimated_cost_usd:.2f}" if res.estimated_cost_usd > 0 else "Free (Open Plan)"
-            lines.append(f"  {name_str:<24} | {raw_t:<13} | {tot_t:<15} | {cost_str:<12}")
+            lines.append(f"  {name_str:<24} | {raw_t:<13} | {tot_t:<15} | ")
         lines.append("  " + "-" * 76)
         
         lines.append("\n  IBM Quantum Architectural Notes:")
@@ -910,7 +910,7 @@ class FullAnalysisReport:
     def to_markdown_table(self) -> str:
         """Export comparison table as Markdown format."""
         md = []
-        md.append("| IBM Processor | Architecture | Qubits | Raw QPU Time | Total Job Time | Est. Cost | Qubits Fit? |")
+        md.append("| IBM Processor | Architecture | Qubits | Raw QPU Time | Total Job Time | Qubits Fit? |")
         md.append("| :--- | :--- | :--- | :--- | :--- | :--- | :--- |")
         for res in self.qpu_estimates:
             fit_icon = "Yes" if res.is_qubit_count_supported else "No (Exceeds QPU)"
@@ -919,7 +919,7 @@ class FullAnalysisReport:
             cost = f"${res.estimated_cost_usd:.2f}" if res.estimated_cost_usd > 0 else "Free (Open Plan)"
             if not res.is_qubit_count_supported:
                 cost = "N/A"
-            md.append(f"| **{res.qpu_name}** | {res.modality} | {res.supported_qubits} | {raw_t} | {tot_t} | {cost} | {fit_icon} |")
+            md.append(f"| **{res.qpu_name}** | {res.modality} | {res.supported_qubits} | {raw_t} | {tot_t} | {fit_icon} |")
         return "\n".join(md)
 
     def to_dict(self) -> Dict[str, Any]:
