@@ -1,13 +1,12 @@
-
+# Dependencias base (Simulador y Análisis)
 qiskit
 qiskit-aer
+pandas
 numpy
-scipy
-psutil
-tabulate
 matplotlib
-pylatexenc
-pytest
-pytest-cov
-flake8
-black
+psutil
+# Dependencias para actualización de datos (Scraping)
+playwright
+# Opcional: Detección y simulación en GPU
+torch
+qiskit-aer-gpu # Descomenta esta línea para instalar el simulador con aceleración CUDA

@@ -1,0 +1,11 @@
+QPU,Qubits,Physical Qbits,Tipo,2Q Error (Best),2Q Error (Layered),Readout Error,MCPS,Estado
+ibm_phoenix,120,458,Nighthawk r2,7.686E-4,2.590E-3,6.653E-3,109.7 kHz,Online
+ibm_miami,120,338,Nighthawk r1,8.777E-4,9.295E-3,1.819E-2,250 Hz,"Offline
+Maintenance until 12/9"
+ibm_boston,156,332,Heron r3,5.576E-4,2.694E-3,8.057E-3,3.8 kHz,Online
+ibm_kingston,156,332,Heron r2,8.910E-4,3.584E-3,9.827E-3,3.8 kHz,Online
+ibm_pittsburgh,156,332,Heron r3,5.987E-4,4.880E-3,1.184E-2,3.8 kHz,Online
+ibm_fez,156,332,Heron r2,1.148E-3,4.375E-3,1.025E-2,3.9 kHz,Online
+ibm_marrakesh,156,332,Heron r2,1.213E-3,5.696E-3,1.978E-2,3.7 kHz,Online
+ibm_berlin,120,338,Nighthawk r1,5.521E-4,4.252E-3,1.935E-2,250 Hz,Online
+ibm_aachen,156,332,Heron r3,6.968E-4,3.022E-3,5.615E-3,3.8 kHz,Online
