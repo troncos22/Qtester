@@ -2,3 +2,157 @@
 ### código que permite evaluar Quantum circuits de manera de saber el tiempo que se demorará en ejecutar en distintos tipos de Quantum processor, evaluando costos, cantidad de Qbits utilizados, a la vez que evalua el hardware local para saber si es posible hacer una simulació previa para el ajuste del Quantum Circuit.
 
 este estimador analiza el circuito que se quiere mandar al hardware cuántico, de manera de tener un estimado de cuanto se demorará dependiendo del modelo de procesador, por defoult si no se declara un procesador en específico, se utilizará el heron 
+
+# Guía de Uso: Qiskit Circuit Resource, Runtime & Cost Estimator
+
+Calculadora de recursos, tiempos de ejecución y viabilidad de simulación clásica para circuitos cuánticos en el ecosistema **Qiskit** y la plataforma **IBM Quantum**.
+
+## 1. Descripción General
+
+Este módulo evalúa tres aspectos clave de un circuito cuántico antes de enviarlo a ejecutar:
+
+1. **Perfil de Recursos del Circuito**:
+   - Conteo de cúbits activos vs. declarados (ignora cúbits ociosos).
+   - Profundidad global y profundidad crítica de compuertas de dos cúbits ($2Q\text{-depth}$).
+   - Detección de operaciones Clifford vs. No-Clifford ($T\text{-count}$, rotaciones parametrizadas).
+   - Estimación del sobrecosto de enrutamiento (*SWAP routing*) sobre la topología Heavy-Hexagon de IBM.
+
+2. **Evaluación de Hardware Local y Simulación Clásica**:
+   - Diagnóstico automático de CPU, núcleos y memoria RAM disponible.
+   - Evaluación de viabilidad de simulación local en `Qiskit Aer`:
+     * **Statevector**: Memoria exacta ($2^n \times 16$ bytes). Alerta de desbordamiento (OOM) si supera la RAM disponible.
+     * **Stabilizer (Clifford)**: Detección del teorema de Gottesman-Knill ($O(n^2)$ bits de memoria) para simular miles de cúbits en milisegundos si no hay compuertas T/rotaciones.
+     * **Matrix Product State (MPS)**: Simulación basada en redes de tensores con dimensión de enlace ($\chi$) para circuitos con entrelazamiento moderado.
+     * **Extended Stabilizer**: Descomposición de Bravyi para circuitos con bajo número de compuertas T ($t \le 40$).
+
+3. **Modelado de Tiempos y Costos en IBM Quantum**:
+   - Tiempos físicos de pulso para cúbits superconductores (1Q microwave pulses, compuertas 2Q CZ/ECR, readout dispersivo multiplexado y reset activo).
+   - Soporte para procesadores de la plataforma IBM Quantum (Heron r2, Eagle r3, Eagle Open Plan, Falcon, Osprey).
+   - Por defecto utiliza **IBM Heron (r2)** (`ibm_heron`), con posibilidad de seleccionar procesadores individuales o comparar toda la flota (`target_qpu="all"`).
+   - Cálculo del costo financiero estimado en **IBM Quantum Runtime** ($1.60 USD por segundo de ejecución QPU) o deducción de cuota gratuita en el **Open Plan** (10 min/mes).
+
+## 2. Requisitos e Instalación
+
+Para instalar las dependencias necesarias en tu entorno virtual:
+
+```bash
+pip install -r requirements.txt
+```
+
+Dependencias principales incluidas:
+* `qiskit`
+* `qiskit-aer`
+* `numpy`
+* `psutil` (opcional, para diagnóstico detallado de RAM)
+
+## 3. Inicio Rápido
+
+### Uso Básico (Evaluación por defecto en IBM Heron)
+
+Si no especificas un procesador, el estimador utiliza automáticamente **IBM Heron (r2)**:
+
+```python
+from qiskit import QuantumCircuit
+from qiskit_circuit_estimator import QuantumCircuitEstimator
+
+# 1. Crear circuito cuántico en Qiskit
+qc = QuantumCircuit(12, 12)
+for i in range(12):
+    qc.h(i)
+for i in range(11):
+    qc.cx(i, i + 1)
+qc.measure_all()
+
+# 2. Instanciar estimador (por defecto: IBM Heron r2)
+estimator = QuantumCircuitEstimator()
+
+# 3. Evaluar para 2,000 disparos (shots)
+report = estimator.evaluate(qc, shots=2000)
+
+# 4. Mostrar reporte en terminal
+report.print_summary()
+```
+
+## 4. Selección del Procesador Cuántico
+
+Puedes indicar el procesador deseado al inicializar la clase `QuantumCircuitEstimator(target_qpu=...)`:
+
+```python
+# Evaluar en el plan gratuito Open Plan de IBM (Eagle 127q)
+estimator_open = QuantumCircuitEstimator(target_qpu="ibm_eagle_open")
+report = estimator_open.evaluate(qc, shots=1000)
+
+# Evaluar en IBM Eagle bajo pago por segundo
+estimator_eagle = QuantumCircuitEstimator(target_qpu="ibm_eagle")
+
+# Evaluar simultáneamente en toda la flota de IBM
+estimator_all = QuantumCircuitEstimator(target_qpu="all")
+report_all = estimator_all.evaluate(qc, shots=4000)
+report_all.print_summary()
+```
+
+### Tabla de Procesadores y Alias Admitidos
+
+| Identificador | Alias Aceptados | Arquitectura | Cúbits | Compuerta 2Q | Modelo de Costo |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| `ibm_heron` *(Default)* | `heron`, `heleron`, `torino`, `marrakesh` | Tunable-Coupler Transmon | 156 | CZ (~60 ns) | $1.60 / segundo QPU |
+| `ibm_eagle` | `eagle`, `brisbane`, `kyoto` | Fixed-Frequency Transmon | 127 | ECR (~350 ns) | $1.60 / segundo QPU |
+| `ibm_eagle_open` | `open`, `open_plan` | Fixed-Frequency Transmon | 127 | ECR (~350 ns) | Cuota gratuita (10 min/mes) |
+| `ibm_falcon` | `falcon` | Fixed-Frequency Transmon | 27 | ECR (~300 ns) | $1.60 / segundo QPU |
+| `ibm_osprey` | `osprey` | Fixed-Frequency Transmon | 433 | ECR (~400 ns) | $1.60 / segundo QPU |
+
+### Sobrescritura en la Llamada `.evaluate()`
+
+Si instancies el estimador con un procesador por defecto, puedes evaluar un circuito específico en otro procesador sin crear una nueva instancia:
+
+```python
+estimator = QuantumCircuitEstimator() # Default: Heron
+
+# Evaluar específicamente en Eagle para este circuito
+report = estimator.evaluate(qc, shots=1500, target_qpu="ibm_eagle_open")
+```
+
+## 5. Interpretación de los Resultados
+
+El método `.print_summary()` genera un informe dividido en tres bloques:
+
+### Bloque 1: Perfil de Recursos
+Informa el número real de cúbits que tienen operaciones aplicadas (`Active Qubits`), la profundidad crítica, el desglose de compuertas y si el circuito es 100% Clifford (lo cual permite simulación polinomial exacta).
+
+### Bloque 2: Diagnóstico de Simulación Local
+Compara los requerimientos de memoria de cuatro métodos contra la memoria RAM física de tu equipo:
+* **Statevector**: Recomendado para $n \le 28$ cúbits en equipos convencionales (16–32 GB RAM). Si el circuito supera la memoria libre, lo marca como `INFEASIBLE (OOM)`.
+* **Clifford Stabilizer**: Si el circuito no tiene compuertas T ni rotaciones continuas, se recomienda como método óptimo (`★ BEST`), requiriendo menos de 1 MB de RAM independientemente del número de cúbits.
+* **Matrix Product State (MPS)**: Alternativa viable cuando el circuito supera los 30 cúbits pero mantiene entrelazamiento bajo o unidimensional.
+
+### Bloque 3: Estimación de Hardware IBM
+Detalla:
+* **Raw QPU Time**: Tiempo neto durante el cual los cúbits son manipulados por pulsos de microondas y leídos en el criostato.
+* **Total Wall Time**: Tiempo total de trabajo incluyendo latencias de búfer de control, inicialización de sesión en Qiskit Runtime y empaquetado de resultados.
+* **Cost (USD)**: Costo estimado según la tarifa de IBM Quantum Runtime ($1.60/s) o confirmación de consumo de cuota gratuita en el Open Plan.
+
+## 6. Exportación e Integración Programática
+
+Puedes extraer los datos del reporte en diferentes formatos para pipelines automatizados:
+
+```python
+report = estimator.evaluate(qc, shots=4000)
+
+# Exportar tabla comparativa en formato Markdown
+tabla_md = report.to_markdown_table()
+print(tabla_md)
+
+# Convertir el reporte completo a diccionario Python o JSON
+datos = report.to_dict()
+print(f"Cúbits activos: {datos['circuit_metrics']['active_qubits']}")
+print(f"Método recomendado: {datos['local_simulation']['recommended_method']}")
+print(f"Costo en Heron: ${datos['qpu_estimates'][0]['estimated_cost_usd']:.2f}")
+```
+
+## 7. Ejecución de Pruebas Unitarias
+
+Para verificar el correcto funcionamiento del estimador y validar todas las reglas de negocio (compatibilidad con Qiskit, límites de cúbits y selección por defecto de Heron):
+
+```bash
+python3 artifacts/file_generation/ttl=63d/intermediate/test_estimator.py
+```
