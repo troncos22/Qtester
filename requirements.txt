@@ -1,0 +1,13 @@
+
+qiskit
+qiskit-aer
+numpy
+scipy
+psutil
+tabulate
+matplotlib
+pylatexenc
+pytest
+pytest-cov
+flake8
+black
