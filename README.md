@@ -21,3 +21,5 @@ Asegúrate de tener instalado Python 3.8+ y las siguientes dependencias:
 
 ```bash
 pip install qiskit qiskit-aer pandas numpy matplotlib psutil
+```
+en un futuro la idea es convertir esto en una API
