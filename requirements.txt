@@ -5,8 +5,9 @@ pandas
 numpy
 matplotlib
 psutil
+# Topologías y compuertas nativas de las QPUs (transpilación por QPU)
+qiskit-ibm-runtime
 # Dependencias para actualización de datos (Scraping)
 playwright
 # Opcional: Detección y simulación en GPU
 torch
-qiskit-aer-gpu # Descomenta esta línea para instalar el simulador con aceleración CUDA

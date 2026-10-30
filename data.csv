@@ -1,4 +1,4 @@
-QPU,Qubits,Physical Qbits,Tipo,2Q Error (Best),2Q Error (Layered),Readout Error,MCPS,Estado
+QPU,Qubits,Physical Qubits,Type,2Q Error (Best),2Q Error (Layered),Readout Error,MCPS,Status
 ibm_phoenix,120,458,Nighthawk r2,7.686E-4,2.590E-3,6.653E-3,109.7 kHz,Online
 ibm_miami,120,338,Nighthawk r1,8.777E-4,9.295E-3,1.819E-2,250 Hz,"Offline
 Maintenance until 12/9"
