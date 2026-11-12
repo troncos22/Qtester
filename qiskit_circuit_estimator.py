@@ -46,6 +46,10 @@ def _error_value(row, *columns) -> float:
     return np.nan
 
 @lru_cache(maxsize=None)
+def _warn_once(msg: str):
+    warnings.warn(msg, stacklevel=3)
+
+@lru_cache(maxsize=None)
 def _fake_backend(name: str):
     """Loads a fake backend from qiskit-ibm-runtime by name, or None if unavailable."""
     try:
@@ -53,6 +57,11 @@ def _fake_backend(name: str):
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")  # fake_nighthawk warns about its error values; only topology is used
             return FakeProviderForBackendV2().backend(name)
+    except ImportError as e:
+        # Typically qiskit-ibm-runtime too new for the installed qiskit (e.g. runtime >=0.47 needs qiskit >=2.3)
+        _warn_once(f"qiskit-ibm-runtime fake backends unavailable ({e}); QPU transpilation falls back to "
+                   "logical circuit counts. Fix: pip install -U qiskit qiskit-ibm-runtime")
+        return None
     except Exception:
         return None
 

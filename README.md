@@ -32,7 +32,7 @@ git clone <repository-url>
 cd Qtester_mf
 python -m venv .venv
 source .venv/bin/activate
-pip install qiskit qiskit-aer qiskit-ibm-runtime pandas numpy matplotlib psutil
+pip install "qiskit>=2,<3" qiskit-aer qiskit-ibm-runtime pandas numpy matplotlib psutil
 ```
 
 `qiskit-ibm-runtime` provides the QPU topologies used for transpilation and access to the IBM Quantum API. Without it, the estimator falls back to counting gates on the untranspiled circuit.

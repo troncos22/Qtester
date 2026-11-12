@@ -1,12 +1,12 @@
 # Dependencias base (Simulador y Análisis)
-qiskit
+qiskit>=2,<3
 qiskit-aer
 pandas
 numpy
 matplotlib
 psutil
 # Topologías y compuertas nativas de las QPUs (transpilación por QPU)
-qiskit-ibm-runtime
+qiskit-ibm-runtime  # recent versions need qiskit>=2.3; pip picks a compatible one for older qiskit
 # Dependencias para actualización de datos (Scraping)
 playwright
 # Opcional: Detección y simulación en GPU
