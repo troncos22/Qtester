@@ -1,3 +1,5 @@
+[![Qiskit Ecosystem](https://qisk.it/e-a957c8f2)](https://qisk.it/e)
+
 # Qiskit Circuit Hardware Estimator
 
 An analysis tool that checks whether a Qiskit quantum circuit can be simulated locally (CPU/GPU) and compares its execution time, estimated fidelity and, optionally, cost on real IBM Quantum processors (QPUs).
